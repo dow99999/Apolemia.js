@@ -1,12 +1,13 @@
 const Slave = require("./classes/Slave.js");
 
-s = new Slave("localhost", 27927);
+const mu = require("./lib/monitorUtils.js")
 
-s.connect();
+s = new Slave("127.0.0.1", 27900);
+
+s.connect_monitoring();
 
 (async () => {
   while(true) {
-    s.send("ping", null);
-    await new Promise(r => setTimeout(r, 1000));
+    s.send("monitor", await mu.info());
   }
 })()

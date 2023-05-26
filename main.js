@@ -1,3 +1,6 @@
 const Master = require("./classes/Master.js");
 
-(new Master(27927)).listen()
+let master = new Master(27900);
+
+master.listen_to_slave_additions();
+master.listen_to_requests();
