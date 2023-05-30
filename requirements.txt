@@ -1,0 +1,3 @@
+npm i node-os-utils
+npm i adm-zip
+npm i ws
