@@ -24,7 +24,7 @@ class Master {
     this.__requesters = {}
     this.__slaves = {}
 
-    this.__jobs = {}
+    this.__jobs = []
 
     // process.on('SIGINT', async () => {
     //   console.log("Closing Requesters...");
@@ -100,8 +100,8 @@ class Master {
    * 
    * @param {RequesterObject} request 
    */
-  queueJob(request) {
-    
+  queueJob(slave_id, request) {
+    this.__jobs.push([, slave_id, request])
   }
 
   _slaveMessageParser(ws_id, raw_data) {
@@ -116,6 +116,10 @@ class Master {
         break;
       case "monitor":
         this.__slaves[ws_id].stats = dataObject.data;
+        // console.log(this.__slaves[ws_id].stats)
+        break;
+      case "job":
+        console.log("Received Job! " + dataObject.data.id);
         // console.log(this.__slaves[ws_id].stats)
         break;
     }
