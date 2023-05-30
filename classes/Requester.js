@@ -51,7 +51,7 @@ class Requester {
   startJob(workspace_path, executor, main="", args=[]) {
     lu.log(MODULE_NAME, "compressing...", ["zip"])
 
-    const outputFile = workspace_path + "__temp.zip";
+    const outputFile = workspace_path + "/__temp.zip";
     let zip = new AdmZip();
     zip.addLocalFolder(workspace_path);
     zip.writeZip(outputFile);

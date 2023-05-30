@@ -5,6 +5,8 @@ const mu = require("../lib/monitorUtils");
 const AdmZip = require("adm-zip");
 const { WebSocket } = require("ws");
 const DataObject = require("./DataObject");
+const RequestObject = require("./RequestObject");
+const JobObject = require("./JobObject");
 
 class Slave {
   constructor(host, port) {
@@ -12,6 +14,8 @@ class Slave {
     this.port = port;
     this.__ws_monitor = null;
     this.__ws_workspaces = null;
+
+    this.__jobs = []
 
     this.connected = false;
   }
@@ -50,6 +54,18 @@ class Slave {
     }
   }
 
+  /**
+   * 
+   * @param {RequestObject} request 
+   */
+  startJob(path, request) {
+    let job = new JobObject(request.id, request.executor, request.main + " " + request.args);
+
+    job.startJob(path);
+
+    return job;
+  }
+
   _messageParser(raw_data) {
     if(raw_data === undefined) return;
     let dataObject = new DataObject().load_socket_data(raw_data);
@@ -66,7 +82,22 @@ class Slave {
         break;
       case "request":
         console.log("Received Request!!");
-        fs.writeFileSync("workspace.zip", Buffer.from(data.workspace, "base64"));
+        fs.mkdirSync("./workspaces/" + data.id);
+        fs.writeFileSync("./workspaces/" + data.id + "/workspace.zip", Buffer.from(data.workspace, "base64"));
+        
+        let zip = new AdmZip("./workspaces/" + data.id + "/workspace.zip");
+        zip.extractAllTo("./workspaces/" + data.id + "/", true);
+        fs.rmSync("./workspaces/" + data.id + "/workspace.zip")
+        
+        let job = this.startJob("./workspaces/" + data.id, data);
+
+        zip = new AdmZip()
+        zip.addLocalFolder("./workspaces/" + data.id);
+        zip.writeZip("./workspaces/" + data.id + "/workspace.zip");
+
+        console.log(job.stdout);
+
+        fs.rmSync("./workspaces/" + data.id, { recursive: true });
     }
   }
 }

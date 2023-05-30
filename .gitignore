@@ -5,3 +5,4 @@ package-lock.json
 
 # docking workspaces
 slave_dock/*/
+workspaces/*/

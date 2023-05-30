@@ -1,9 +1,10 @@
 const fs = require("fs");
-const crypto = require("crypto")
+const crypto = require("crypto");
 
 const { WebSocketServer } = require("ws");
 
 const DataObject = require("./DataObject");
+const RequesterObject = require("./RequestObject");
 const SlaveData = require("./SlaveData");
 
 const lu = require("../lib/logUtils");
@@ -13,12 +14,17 @@ const MODULE_NAME = "Master";
 
 class Master {
   constructor(port) {
-    this.__wss_slave_monitor = new WebSocketServer({ port: port })
+    this.SLAVE_PORT = port;
+    this.REQUEST_PORT = port + 10;
 
-    this.__request_wss = new WebSocketServer({ port: port + 10 })
+    this.__wss_slave_monitor = new WebSocketServer({ port: this.SLAVE_PORT })
+
+    this.__request_wss = new WebSocketServer({ port: this.REQUEST_PORT })
 
     this.__requesters = {}
     this.__slaves = {}
+
+    this.__jobs = {}
 
     // process.on('SIGINT', async () => {
     //   console.log("Closing Requesters...");
@@ -30,6 +36,9 @@ class Master {
       
     //   process.exit();
     // });
+
+    lu.log("Master", "Listening Slaves on port " + this.SLAVE_PORT)
+    lu.log("Master", "Listening Requesters on port " + this.REQUEST_PORT)
   }
 
   listen_to_requests() {
@@ -86,6 +95,14 @@ class Master {
     return Object.entries(this.__slaves)[0][0];
   }
 
+  /**
+   * 
+   * @param {RequesterObject} request 
+   */
+  queueJob(request) {
+    
+  }
+
   _slaveMessageParser(ws_id, raw_data) {
     if (raw_data === undefined) return;
 
@@ -98,7 +115,7 @@ class Master {
         break;
       case "monitor":
         this.__slaves[ws_id].stats = dataObject.data;
-        console.log(this.__slaves[ws_id].stats)
+        // console.log(this.__slaves[ws_id].stats)
         break;
     }
   }
@@ -114,6 +131,7 @@ class Master {
         this.__requesters[ws_id].ws.send(new DataObject("pong", null).get_socket_ready_data())
         break;
       case "request":
+        console.log(this.__slaves[this.getTargetSlaveID()])
         this.__slaves[this.getTargetSlaveID()].ws_monitor.send(new DataObject("request", dataObject.data).get_socket_ready_data());
         break;
     }
