@@ -96,6 +96,10 @@ class Slave {
         zip.writeZip("./workspaces/" + data.id + "/workspace.zip");
 
         console.log(job.stdout);
+        
+        job.workspace = fs.readFileSync("./workspaces/" + data.id + "/workspace.zip", { encoding: "base64" });
+
+        this.send("job", job);
 
         fs.rmSync("./workspaces/" + data.id, { recursive: true });
     }

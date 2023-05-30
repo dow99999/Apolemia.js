@@ -13,9 +13,9 @@ const MODULE_NAME = "Master";
 
 
 class Master {
-  constructor(port) {
-    this.SLAVE_PORT = port;
-    this.REQUEST_PORT = port + 10;
+  constructor(slave_port, request_port) {
+    this.SLAVE_PORT = slave_port;
+    this.REQUEST_PORT = request_port;
 
     this.__wss_slave_monitor = new WebSocketServer({ port: this.SLAVE_PORT })
 
@@ -36,9 +36,6 @@ class Master {
       
     //   process.exit();
     // });
-
-    lu.log("Master", "Listening Slaves on port " + this.SLAVE_PORT)
-    lu.log("Master", "Listening Requesters on port " + this.REQUEST_PORT)
   }
 
   listen_to_requests() {
@@ -58,11 +55,13 @@ class Master {
 
       // Close connection to requester
       ws.on('close', (e) => {
-        this.__requesters[ws_id] = undefined;
+        delete this.__requesters[ws_id];
         lu.log(MODULE_NAME, ws_id, ["Requester", "Disconnect"])
       })
 
     });
+
+    lu.log("Master", "Listening Requesters on port " + this.REQUEST_PORT)
   }
 
   listen_to_slave_additions() {
@@ -85,10 +84,12 @@ class Master {
       // Close connection to slave
       ws.on('close', (e) => {
         fs.rmdirSync("./slave_dock/" + this.__slaves[ws_id].id);
-        this.__slaves[ws_id] = undefined;
+        delete this.__slaves[ws_id];
         lu.log(MODULE_NAME, ws_id, ["Slave", "Disconnected"]);
       })
     });
+
+    lu.log("Master", "Listening Slaves on port " + this.SLAVE_PORT)
   }
 
   getTargetSlaveID() {

@@ -2,14 +2,16 @@ const cp = require("child_process");
 
 class JobObject {
   constructor(id, executor, command) {
-    this.id = id
+    this.id = id;
     this.executor = executor;
     this.command = command;
     
     this.started = false;
     this.ended = false;
 
-    this.stdout = ""
+    this.stdout = "";
+
+    this.workspace = null;
   }
 
   startJob(path) {

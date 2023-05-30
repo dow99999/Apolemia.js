@@ -1,8 +1,9 @@
 const Slave = require("./classes/Slave.js");
 
 const mu = require("./lib/monitorUtils.js")
+const cfg = require("./config.json");
 
-s = new Slave("127.0.0.1", 27900);
+s = new Slave(cfg.master_ip, cfg.master_slave_port);
 
 s.connect_monitoring();
 
