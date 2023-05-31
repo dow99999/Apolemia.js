@@ -1,6 +1,7 @@
 const Requester = require("./classes/Requester.js");
 
-s = new Requester("127.0.0.1", 27910);
-s.connect();
+const cfg = require("./config.json");
 
-s.startJob("./test", "node", "main.js");
+new Requester(cfg.master_ip, cfg.master_request_port)
+  .connect()
+  .startJob("./test/", "node", "main.js", ["1", "2"]);

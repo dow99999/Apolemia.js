@@ -1,5 +1,5 @@
 {
-    "master_ip": "10.0.110.208",
+    "master_ip": "127.0.0.1",
     "master_slave_port": 27900,
     "master_request_port": 27910
 }

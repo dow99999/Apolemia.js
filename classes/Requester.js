@@ -45,21 +45,23 @@ class Requester {
         this.connect();
       }
     })
+
+    return this;
   }
 
 
   startJob(workspace_path, executor, main="", args=[]) {
     lu.log(MODULE_NAME, "compressing...", ["zip"])
 
-    const outputFile = workspace_path + "/__temp.zip";
+    const outputFile = workspace_path + "/__temp" + (+(new Date)) + ".zip";
     let zip = new AdmZip();
     zip.addLocalFolder(workspace_path);
     zip.writeZip(outputFile);
 
+    let workspace = fs.readFileSync(outputFile, { encoding: "base64" });
     lu.log(MODULE_NAME, "sending...", ["zip"])
-    let workspace = fs.readFileSync(workspace_path + "/__temp.zip", { encoding: "base64" });
     this.send("request", new RequesterObject(workspace, executor, main, args));
-    fs.rmSync(workspace_path + "/__temp.zip")
+    fs.rmSync(outputFile)
   }
 
   async send(type, data) {
@@ -81,11 +83,24 @@ class Requester {
     
     switch(type) {
       case "pong":
-        console.log("Received Pong!")
+        lu.log(MODULE_NAME, "", ["pong"]);
         break;
-      case "zip":
-        console.log("Received compressed file!");
-        fs.writeFileSync("received.zip", Buffer.from(data, "base64"));
+      case "info":
+        lu.log(MODULE_NAME, data, ["info"]);
+        break;
+      case "job":
+        lu.log(MODULE_NAME, "Received Results from Job");
+        
+        fs.mkdirSync("./results/" + data.id);
+        fs.writeFileSync("./results/" + data.id + "/workspace.zip", Buffer.from(data.job.workspace, "base64"));
+        
+        let zip = new AdmZip("./results/" + data.id + "/workspace.zip");
+        zip.extractAllTo("./results/" + data.id + "/", true);
+        fs.rmSync("./results/" + data.id + "/workspace.zip");
+
+        fs.writeFileSync("./results/" + data.id + "/stdout.txt", data.job.stdout);
+
+        process.exit()
     }
   }
 }

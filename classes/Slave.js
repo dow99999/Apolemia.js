@@ -1,12 +1,16 @@
 const fs = require("fs")
 
+
 const mu = require("../lib/monitorUtils");
+const lu = require("../lib/logUtils");
 
 const AdmZip = require("adm-zip");
 const { WebSocket } = require("ws");
 const DataObject = require("./DataObject");
 const RequestObject = require("./RequestObject");
 const JobObject = require("./JobObject");
+
+const MODULE_NAME = "Slave";
 
 class Slave {
   constructor(host, port) {
@@ -24,22 +28,23 @@ class Slave {
     this.__ws_monitor = new WebSocket("ws:" + this.host + ":" + this.port);
     
     this.__ws_monitor.onerror = async () => {
-      console.log("Can't reach host " + this.host + ":" + this.port);
+      lu.log(MODULE_NAME, "Can't reach host " + this.host + ":" + this.port);
       await new Promise(r => setTimeout(r, 5000));
       this.connect_monitoring()
     };
 
     this.__ws_monitor.addEventListener("open", () => {
-      console.log("Successfully connected to " + this.host + ":" + this.port);
+      lu.log(MODULE_NAME, "Successfully connected to " + this.host + ":" + this.port);
       this.connected = true;
     })
 
-    this.__ws_monitor.addEventListener("message", (e) => {
-      this._messageParser(e.data)
+    this.__ws_monitor.addEventListener("message", async (e) => {
+      console.log("message")
+      await this._messageParser(e.data);
     })
 
     this.__ws_monitor.addEventListener("close", async (e) => {
-      console.log("Closed socket to " + this.host + ":" + this.port + ", trying to reconnect...")
+      lu.log(MODULE_NAME, "Closed socket to " + this.host + ":" + this.port + ", trying to reconnect...")
       await new Promise(r => setInterval(r, 5000));
       if(this.connected) {
         this.connected = false;
@@ -58,15 +63,18 @@ class Slave {
    * 
    * @param {RequestObject} request 
    */
-  startJob(path, request) {
+  async startJob(path, request) {
     let job = new JobObject(request.id, request.executor, request.main + " " + request.args);
-
-    job.startJob(path);
+    job.started = true;
+    lu.log(MODULE_NAME, "Started Job " + job.id, ["info"]);
+    await job.startJob(path);
+    lu.log(MODULE_NAME, "Ended Job " + job.id, ["info"]);
+    job.ended = true;
 
     return job;
   }
 
-  _messageParser(raw_data) {
+  async _messageParser(raw_data) {
     if(raw_data === undefined) return;
     let dataObject = new DataObject().load_socket_data(raw_data);
     let type = dataObject.type;
@@ -74,14 +82,10 @@ class Slave {
     
     switch(type) {
       case "pong":
-        console.log("Received Pong!")
-        break;
-      case "zip":
-        console.log("Received compressed file!");
-        fs.writeFileSync("received.zip", Buffer.from(data, "base64"));
+        lu.log(MODULE_NAME, "Received Pong!")
         break;
       case "request":
-        console.log("Received Request!!");
+        lu.log(MODULE_NAME, "Received Request", ["info"]);
         fs.mkdirSync("./workspaces/" + data.id);
         fs.writeFileSync("./workspaces/" + data.id + "/workspace.zip", Buffer.from(data.workspace, "base64"));
         
@@ -89,18 +93,15 @@ class Slave {
         zip.extractAllTo("./workspaces/" + data.id + "/", true);
         fs.rmSync("./workspaces/" + data.id + "/workspace.zip")
         
-        let job = this.startJob("./workspaces/" + data.id, data);
-
+        let job = await this.startJob("./workspaces/" + data.id, data);
         zip = new AdmZip()
         zip.addLocalFolder("./workspaces/" + data.id);
         zip.writeZip("./workspaces/" + data.id + "/workspace.zip");
-
-        console.log(job.stdout);
         
         job.workspace = fs.readFileSync("./workspaces/" + data.id + "/workspace.zip", { encoding: "base64" });
-
+        
         this.send("job", job);
-
+        
         fs.rmSync("./workspaces/" + data.id, { recursive: true });
     }
   }

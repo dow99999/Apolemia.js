@@ -1,18 +1,24 @@
-const fs = require("fs");
-const crypto = require("crypto");
+const lu = require("../lib/logUtils");
 
+const crypto = require("crypto");
 const { WebSocketServer } = require("ws");
 
+const SlaveData = require("./SlaveData");
+const JobObject = require("./JobObject");
 const DataObject = require("./DataObject");
 const RequesterObject = require("./RequestObject");
-const SlaveData = require("./SlaveData");
 
-const lu = require("../lib/logUtils");
 const MODULE_NAME = "Master";
 
 
-
 class Master {
+
+  /**
+   * One of the three Agents, used to orchestrate all Requesters and Slaves
+   * 
+   * @param {Int} slave_port Port for slaves' connection
+   * @param {Int} request_port Port for requesters' connection
+   */
   constructor(slave_port, request_port) {
     this.SLAVE_PORT = slave_port;
     this.REQUEST_PORT = request_port;
@@ -24,7 +30,10 @@ class Master {
     this.__requesters = {}
     this.__slaves = {}
 
-    this.__jobs = []
+    this.__requests = {
+      "queue": [],
+      "started": []
+    }
 
     // process.on('SIGINT', async () => {
     //   console.log("Closing Requesters...");
@@ -36,8 +45,15 @@ class Master {
       
     //   process.exit();
     // });
+
+    setInterval(() => {
+      this.tryStartingJobs();
+    }, 1000);
   }
 
+  /**
+   * Starts listening to Job requesters
+   */
   listen_to_requests() {
     this.__request_wss.on('connection', (ws) => {
       let addr = ws._socket.remoteAddress;
@@ -51,7 +67,7 @@ class Master {
       }
 
       // Parse messages from requester
-      ws.on('message', (e) => { this._requesterMessageParser(ws_id, e) })
+      ws.on('message', async (e) => { this._requesterMessageParser(ws_id, e) })
 
       // Close connection to requester
       ws.on('close', (e) => {
@@ -61,9 +77,12 @@ class Master {
 
     });
 
-    lu.log("Master", "Listening Requesters on port " + this.REQUEST_PORT)
+    lu.log(MODULE_NAME, "Listening Requesters on port " + this.REQUEST_PORT);
   }
 
+  /**
+   * Starts listening to new Slaves
+   */
   listen_to_slave_additions() {
     this.__wss_slave_monitor.on('connection', async (ws) => {
       let addr = ws._socket.remoteAddress;
@@ -75,41 +94,113 @@ class Master {
         lu.log(MODULE_NAME, ws_id, ["Slave", "Connected"]);
         this.__slaves[ws_id] = new SlaveData(crypto.createHash("md5").update(ws_id).digest("hex"), ws);
 
-        fs.mkdirSync("./slave_dock/" + this.__slaves[ws_id].id);
+        // fs.mkdirSync("./slave_dock/" + this.__slaves[ws_id].id);
       }
 
       // Parse messages from slave
-      ws.on('message', (e) => { this._slaveMessageParser(ws_id, e) })
+      ws.on('message', async (e) => { this._slaveMessageParser(ws_id, e) })
       
       // Close connection to slave
       ws.on('close', (e) => {
-        fs.rmdirSync("./slave_dock/" + this.__slaves[ws_id].id);
+        // fs.rmdirSync("./slave_dock/" + this.__slaves[ws_id].id);
         delete this.__slaves[ws_id];
         lu.log(MODULE_NAME, ws_id, ["Slave", "Disconnected"]);
       })
     });
 
-    lu.log("Master", "Listening Slaves on port " + this.SLAVE_PORT)
+    lu.log(MODULE_NAME, "Listening Slaves on port " + this.SLAVE_PORT)
   }
 
+
+  /**
+   * Calculates the best target Slave based on CPU usage
+   * @returns {String} Slave's ID
+   */
   getTargetSlaveID() {
-    return Object.entries(this.__slaves)[0][0];
+    let min = [null, null];
+
+    for(const [id, slave] of Object.entries(this.__slaves)) {
+      if(slave.stats == null) continue;
+
+      if(min[0] == null || (slave.tokens > 0 && min[1] < slave.stats.cpu)) {
+        min = [id, slave.stats.cpu]
+      }
+    }
+
+    return min[0];
   }
 
   /**
-   * 
+   * Adds a traceable request to the request queue
    * @param {RequesterObject} request 
    */
-  queueJob(slave_id, request) {
-    this.__jobs.push([, slave_id, request])
+  queueRequest(requester_id, request) {
+    this.__requests.queue.push(new Master.RequestTrace(requester_id, null, request));
   }
 
+  /**
+   * Checks all queued requests and tries to assign them to an available Slave
+   */
+  async tryStartingJobs() {
+    let requests = this.__requests.queue;
+    for(let i = 0; i < requests.length; i++) {
+      let slave_id = this.getTargetSlaveID();
+      if(slave_id == null) return;
+      
+      let slave = this.__slaves[slave_id];
+      let requester = this.__requesters[requests[i].requester_id];
+      
+      // If target slave still has tokens
+      if(slave.tokens > 0) {
+        slave.tokens--;
+        requests[i].request.started = true;
+        requests[i].slave_id = slave_id;
+        slave.ws_monitor.send(new DataObject("request", requests[i].request).get_socket_ready_data());
+        requester.send(new DataObject("info", "Started job with id " + requests[i].request.id).get_socket_ready_data());
+
+        // Move to started jobs
+        this.__requests.started.push(requests[i]);
+
+        // Nullify from queue jobs
+        this.__requests.queue[i] = null;
+      }
+    }
+
+    // Cleanup
+    this.__requests.queue = this.__requests.queue.filter(e => e != null);
+  }
+
+  /**
+   * Ends a Request from a given finalized job
+   * @param {JobObject} job a fullfilled job
+   */
+  prepareEndedJob(job) {
+    let requests = this.__requests.started;
+
+    for(let i = 0; i < requests.length; i++) {
+      if(requests[i].request.id == job.id) {
+        requests[i].request.job = job;
+        this.__slaves[requests[i].slave_id].tokens++;
+        this.__requesters[requests[i].requester_id].send((new DataObject("job", requests[i].request)).get_socket_ready_data());
+        this.__requests.started[i] = null;
+      }
+    }
+
+    this.__requests.started = this.__requests.started.filter(e => e != null);
+  }
+
+  /**
+   * Parses a received message from a Slave
+   * 
+   * @param {String} ws_id The websocket ID
+   * @param {String} raw_data A valid JSON String
+   */
   _slaveMessageParser(ws_id, raw_data) {
     if (raw_data === undefined) return;
 
     let dataObject = new DataObject().load_socket_data(raw_data);
 
-    lu.log(MODULE_NAME, ws_id, ["Message", dataObject.type]);
+    // lu.log(MODULE_NAME, ws_id, ["Message", dataObject.type]);
     switch (dataObject.type) {
       case "ping":
         this.__slaves[ws_id].ws_monitor.send(new DataObject("pong", null).get_socket_ready_data())
@@ -119,12 +210,18 @@ class Master {
         // console.log(this.__slaves[ws_id].stats)
         break;
       case "job":
-        console.log("Received Job! " + dataObject.data.id);
-        // console.log(this.__slaves[ws_id].stats)
+        lu.log(MODULE_NAME, dataObject.data.id, ["Ended Job"]);
+        this.prepareEndedJob(dataObject.data);
         break;
     }
   }
 
+  /**
+   * Parses a received message from a Requester
+   * 
+   * @param {String} ws_id The websocket ID
+   * @param {String} raw_data A valid JSON String
+   */
   _requesterMessageParser(ws_id, raw_data) {
     if (raw_data === undefined) return;
 
@@ -133,14 +230,28 @@ class Master {
     lu.log(MODULE_NAME, ws_id, ["Message", dataObject.type]);
     switch (dataObject.type) {
       case "ping":
-        this.__requesters[ws_id].ws.send(new DataObject("pong", null).get_socket_ready_data())
+        this.__requesters[ws_id].ws.send(new DataObject("pong", null).get_socket_ready_data());
         break;
       case "request":
-        console.log(this.__slaves[this.getTargetSlaveID()])
-        this.__slaves[this.getTargetSlaveID()].ws_monitor.send(new DataObject("request", dataObject.data).get_socket_ready_data());
+        this.queueRequest(ws_id, dataObject.data);
         break;
     }
   }
 }
+
+Master.RequestTrace = class {
+  /**
+   * JavaBean used to trace a Request
+   * @param {String} requester_id 
+   * @param {String} slave_id 
+   * @param {RequesterObject} request 
+   */
+  constructor(requester_id, slave_id, request) {
+    this.requester_id = requester_id;
+    this.slave_id = slave_id;
+    this.request = request;
+  }
+}
+
 
 module.exports = Master

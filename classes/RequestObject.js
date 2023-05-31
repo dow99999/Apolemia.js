@@ -5,6 +5,8 @@ class RequestObject {
     this.executor = executor;
     this.main = main;
     this.args = args.join(" ");
+
+    this.job = null;
   }
 }
 

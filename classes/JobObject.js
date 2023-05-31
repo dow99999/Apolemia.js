@@ -14,13 +14,20 @@ class JobObject {
     this.workspace = null;
   }
 
-  startJob(path) {
+  async startJob(path) {
     this.started = true;
-    console.log("job " + path);
     
-    let child = cp.spawnSync(this.executor, this.command.split(" "), { encoding : 'utf8', cwd: path });
-    this.stdout = child.stdout;
-    
+    let child = cp.spawn(this.executor, this.command.split(" "), { encoding : 'utf8', cwd: path });
+
+    await new Promise(resolve => {
+      child.stdout.setEncoding('utf8');
+      child.stdout.on("data", (data) => {
+        this.stdout += data.toString();
+      })
+
+      child.on("close", resolve)
+    })
+
     this.ended = true;
   }
 }

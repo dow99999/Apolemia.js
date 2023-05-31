@@ -3,6 +3,8 @@ class SlaveData {
     this.id = id;
     this.ws_monitor = ws_monitor;
     this.stats = null;
+
+    this.tokens = 2;
   }
 }
 
