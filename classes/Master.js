@@ -6,6 +6,9 @@ const SlaveData = require("./SlaveData");
 const JobObject = require("./JobObject");
 const DataObject = require("./DataObject");
 const RequesterObject = require("./RequestObject");
+const Monitor = require("./Monitor");
+
+const cfg = require("../config.json");
 
 const MODULE_NAME = "Master";
 
@@ -21,6 +24,8 @@ class Master {
   constructor(slave_port, request_port) {
     this.SLAVE_PORT = slave_port;
     this.REQUEST_PORT = request_port;
+
+    this.__monitor = new Monitor(cfg.web_monitor_port, this);
 
     this.__wss_slave_monitor = new WebSocketServer({ port: this.SLAVE_PORT })
 
@@ -48,6 +53,8 @@ class Master {
     setInterval(() => {
       this.tryStartingJobs();
     }, 1000);
+
+    this.__monitor.startWebServer();
   }
 
   /**

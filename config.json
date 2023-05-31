@@ -1,5 +1,6 @@
 {
     "master_ip": "127.0.0.1",
     "master_slave_port": 27900,
-    "master_request_port": 27910
+    "master_request_port": 27910,
+    "web_monitor_port": 3030
 }
