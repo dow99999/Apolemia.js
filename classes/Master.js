@@ -1,6 +1,5 @@
 const lu = require("../lib/logUtils");
 
-const crypto = require("crypto");
 const { WebSocketServer } = require("ws");
 
 const SlaveData = require("./SlaveData");
@@ -92,7 +91,7 @@ class Master {
       // Add slave to slaves' register
       if (addr !== undefined && port !== undefined) {
         lu.log(MODULE_NAME, ws_id, ["Slave", "Connected"]);
-        this.__slaves[ws_id] = new SlaveData(crypto.createHash("md5").update(ws_id).digest("hex"), ws);
+        this.__slaves[ws_id] = new SlaveData(ws_id, ws);
 
         // fs.mkdirSync("./slave_dock/" + this.__slaves[ws_id].id);
       }

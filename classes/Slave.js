@@ -39,7 +39,6 @@ class Slave {
     })
 
     this.__ws_monitor.addEventListener("message", async (e) => {
-      console.log("message")
       await this._messageParser(e.data);
     })
 

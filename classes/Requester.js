@@ -51,7 +51,7 @@ class Requester {
 
 
   startJob(workspace_path, executor, main="", args=[]) {
-    lu.log(MODULE_NAME, "compressing...", ["zip"])
+    lu.log(MODULE_NAME, "compressing...", ["workspace"])
 
     const outputFile = workspace_path + "/__temp" + (+(new Date)) + ".zip";
     let zip = new AdmZip();
@@ -59,7 +59,7 @@ class Requester {
     zip.writeZip(outputFile);
 
     let workspace = fs.readFileSync(outputFile, { encoding: "base64" });
-    lu.log(MODULE_NAME, "sending...", ["zip"])
+    lu.log(MODULE_NAME, "sending...", ["workspace"])
     this.send("request", new RequesterObject(workspace, executor, main, args));
     fs.rmSync(outputFile)
   }
