@@ -55,7 +55,7 @@ class Requester {
 
     const outputFile = workspace_path + "/__temp" + (+(new Date)) + ".zip";
     let zip = new AdmZip();
-    zip.addLocalFolder(workspace_path);
+    zip.addLocalFolder(workspace_path, undefined, (filename) => !filename.includes("apolemia_responses"));
     zip.writeZip(outputFile);
 
     let workspace = fs.readFileSync(outputFile, { encoding: "base64" });
