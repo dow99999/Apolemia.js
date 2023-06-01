@@ -25,7 +25,7 @@ class Slave {
   }
 
   connect_monitoring() {
-    this.__ws_monitor = new WebSocket("ws:" + this.host + ":" + this.port);
+    this.__ws_monitor = new WebSocket("ws:" + this.host + ":" + this.port, { maxPayload: 15 * 1024 * 1024 * 1024 });
     
     this.__ws_monitor.onerror = async () => {
       lu.log(MODULE_NAME, "Can't reach host " + this.host + ":" + this.port);

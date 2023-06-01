@@ -27,9 +27,14 @@ class Master {
 
     this.__monitor = new Monitor(cfg.web_monitor_port, this);
 
-    this.__wss_slave_monitor = new WebSocketServer({ port: this.SLAVE_PORT })
-
-    this.__request_wss = new WebSocketServer({ port: this.REQUEST_PORT })
+    this.__wss_slave_monitor = new WebSocketServer({
+        port: this.SLAVE_PORT,
+        maxPayload: 15 * 1024 * 1024 * 1024, // 15GB
+      })
+    this.__request_wss = new WebSocketServer({
+      port: this.REQUEST_PORT,
+      maxPayload: 15 * 1024 * 1024 * 1024, // 15GB
+    })
 
     this.__requesters = {}
     this.__slaves = {}

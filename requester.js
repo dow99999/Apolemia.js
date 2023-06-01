@@ -5,7 +5,7 @@ const cfg = require("./config.json");
 if(process.argv.length < 4) {
   console.log("ERROR: Not Enough Parameters")
   console.log("Usage: ")
-  console.log("exec <executor> <main_filename> [<arg1> [<arg2>] ...]")
+  console.log("apolemia <executor> <main_filename> [<arg1> [<arg2>] ...]")
   process.exit()
 }
 

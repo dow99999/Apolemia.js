@@ -20,16 +20,16 @@ class Requester {
   }
 
   connect() {
-    this.__ws_requester = new WebSocket("ws:" + this.host + ":" + this.port);
+    this.__ws_requester = new WebSocket("ws:" + this.host + ":" + this.port, { maxPayload: 15 * 1024 * 1024 * 1024 });
     
     this.__ws_requester.onerror = async () => {
-      console.log("Can't reach host " + this.host + ":" + this.port);
+      lu.log(MODULE_NAME, "Can't reach host " + this.host + ":" + this.port, ["ws"]);
       await new Promise(r => setTimeout(r, 5000));
       this.connect()
     };
 
     this.__ws_requester.addEventListener("open", () => {
-      console.log("Successfully connected to Master@" + this.host + ":" + this.port);
+      lu.log(MODULE_NAME, "Successfully connected to Master@" + this.host + ":" + this.port, ["ws"]);
       this.connected = true;
     })
 
@@ -38,7 +38,7 @@ class Requester {
     })
 
     this.__ws_requester.addEventListener("close", async (e) => {
-      console.log("Closed socket to " + this.host + ":" + this.port + ", trying to reconnect...")
+      lu.log(MODULE_NAME, "Closed socket to " + this.host + ":" + this.port + ", trying to reconnect...", ["ws"])
       await new Promise(r => setInterval(r, 5000));
       if(this.connected) {
         this.connected = false;
@@ -93,13 +93,15 @@ class Requester {
         
         
         fs.mkdirSync("./apolemia_responses/" + data.id, { recursive: true });
+        fs.mkdirSync("./apolemia_responses/" + data.id + "/workspace");
         fs.writeFileSync("./apolemia_responses/" + data.id + "/workspace.zip", Buffer.from(data.job.workspace, "base64"));
         
         let zip = new AdmZip("./apolemia_responses/" + data.id + "/workspace.zip");
-        zip.extractAllTo("./apolemia_responses/" + data.id + "/", true);
+        zip.extractAllTo("./apolemia_responses/" + data.id + "/workspace/", true);
         fs.rmSync("./apolemia_responses/" + data.id + "/workspace.zip");
         
         fs.writeFileSync("./apolemia_responses/" + data.id + "/stdout.txt", data.job.stdout);
+        fs.writeFileSync("./apolemia_responses/" + data.id + "/job_stats.json", JSON.stringify(data.job, null, 2));
         lu.log(MODULE_NAME, "Saved Results on " + "./apolemia_responses/" + data.id);
         
         process.exit()
