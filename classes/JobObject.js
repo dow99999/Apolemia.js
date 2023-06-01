@@ -26,7 +26,11 @@ class JobObject {
       child.stdout.setEncoding('utf8');
       child.stdout.on("data", (data) => {
         this.stdout += data.toString();
-      })
+      });
+
+      child.stderr.on('data', (data) => {
+        this.stdout += data.toString();
+      });
 
       child.on("close", resolve)
     })
