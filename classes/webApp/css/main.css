@@ -229,6 +229,7 @@ body {
   margin: 0;
   width: 45%;
 
+  align-items: flex-start;
   justify-content: center;
   flex-wrap: wrap;
 }
@@ -237,8 +238,10 @@ body {
   display: flex;
   margin: 0;
   width: 45%;
+  
   border-right: 1vh solid #1282A2;
   
+  align-items: flex-start;
   justify-content: center;
   flex-wrap: wrap;
 }

@@ -69,6 +69,7 @@ class Requester {
     do {
       if (this.connected) {
         this.__ws_requester.send((new DataObject(type, data)).get_socket_ready_data());
+        lu.log(MODULE_NAME, "Request Sent", ["workspace"])
         sent = true;
       }
       await new Promise(r => setInterval(r, 2000));
@@ -100,8 +101,12 @@ class Requester {
         zip.extractAllTo("./apolemia_responses/" + data.id + "/workspace/", true);
         fs.rmSync("./apolemia_responses/" + data.id + "/workspace.zip");
         
+        delete data.job.command
+        delete data.job.executor
+        delete data.job.workspace
+
         fs.writeFileSync("./apolemia_responses/" + data.id + "/stdout.txt", data.job.stdout);
-        fs.writeFileSync("./apolemia_responses/" + data.id + "/job_stats.json", JSON.stringify(data.job, null, 2));
+        fs.writeFileSync("./apolemia_responses/" + data.id + "/request_stats.json", JSON.stringify(data, null, 2));
         lu.log(MODULE_NAME, "Saved Results on " + "./apolemia_responses/" + data.id);
         
         process.exit()

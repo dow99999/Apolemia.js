@@ -6,8 +6,8 @@ class JobObject {
     this.executor = executor;
     this.command = command;
     
-    this.start_epoch = +(new Date())
-    this.end_epoch = +(new Date())
+    this.start_epoch = null;
+    this.end_epoch = null;
 
     this.started = false;
     this.ended = false;
@@ -20,6 +20,8 @@ class JobObject {
   async startJob(path) {
     this.started = true;
     
+    this.start_epoch = +(new Date());
+
     let child = cp.spawn(this.executor, this.command.split(" "), { encoding : 'utf8', cwd: path });
 
     await new Promise(resolve => {
@@ -34,7 +36,8 @@ class JobObject {
 
       child.on("close", resolve)
     })
-
+    
+    this.end_epoch = +(new Date());
     this.ended = true;
   }
 }

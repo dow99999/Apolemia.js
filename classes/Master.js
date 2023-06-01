@@ -168,10 +168,11 @@ class Master {
         requests[i].slave_id = slave_id;
         slave.ws_monitor.send(new DataObject("request", requests[i].request).get_socket_ready_data());
         requester.send(new DataObject("info", "Started job with id " + requests[i].request.id).get_socket_ready_data());
-
+        
+        delete requests[i].request.workspace;
         // Move to started jobs
         this.__requests.started.push(requests[i]);
-
+        
         // Nullify from queue jobs
         this.__requests.queue[i] = null;
       }
@@ -192,6 +193,7 @@ class Master {
       if(requests[i].request.id == job.id) {
         requests[i].request.job = job;
         this.__slaves[requests[i].slave_id].tokens++;
+        requests[i].request.end_epoch = +(new Date());
         this.__requesters[requests[i].requester_id].send((new DataObject("job", requests[i].request)).get_socket_ready_data());
         this.__requests.started[i] = null;
       }
