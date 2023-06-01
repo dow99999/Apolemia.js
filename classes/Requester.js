@@ -101,11 +101,14 @@ class Requester {
         zip.extractAllTo("./apolemia_responses/" + data.id + "/workspace/", true);
         fs.rmSync("./apolemia_responses/" + data.id + "/workspace.zip");
         
+        fs.writeFileSync("./apolemia_responses/" + data.id + "/stdout.txt", data.job.stdout);
+        
         delete data.job.command
         delete data.job.executor
         delete data.job.workspace
+        delete data.job.stdout;
+        delete data.job.id;
 
-        fs.writeFileSync("./apolemia_responses/" + data.id + "/stdout.txt", data.job.stdout);
         fs.writeFileSync("./apolemia_responses/" + data.id + "/request_stats.json", JSON.stringify(data, null, 2));
         lu.log(MODULE_NAME, "Saved Results on " + "./apolemia_responses/" + data.id);
         

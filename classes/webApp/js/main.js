@@ -224,16 +224,22 @@ window.onload = async () => {
     showing = "jobs";
     let container = document.getElementById("data");
     container.innerHTML = `
-      <div id=b-queue></div>
-      <div id=b-started></div>
+      <div class="job-list">
+        <div class="job-head"> Queued </div>
+        <div id="b-queue"></div>
+      </div>
+      <div class="job-list">
+        <div class="job-head"> Started </div>
+        <div id="b-started"></div>
+      </div>
     `;
 
     for(const [key, value] of Object.entries(g_qjobs)) {
-      container.children[0].appendChild(value.card);
+      document.getElementById("b-queue").appendChild(value.card);
     }
     
     for(const [key, value] of Object.entries(g_sjobs)) {
-      container.children[1].appendChild(value.card);
+      document.getElementById("b-started").appendChild(value.card);
     }
   });
 

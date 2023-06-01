@@ -149,7 +149,7 @@ body {
   margin: 2vh 2vw;
 
   min-width: fit-content;
-  width: 30vw;
+  width: 25vw;
   height: 20vh;
 
   color: #FAFAFF;
@@ -223,13 +223,34 @@ body {
   color: #1282A2;
 }
 
+.job-list {
+  display: flex;
+  margin: 0;
+  height: 80%;
+  width: 50%;
+
+  justify-content: center;
+
+  flex-wrap: wrap;
+}
+
+.job-head {
+  margin: 1vh 0 2vh;
+  font-size: 2vw;
+  color: #FAFAFF;
+
+  user-select: none;
+}
+
 #b-started {
   display: flex;
-
   margin: 0;
-  width: 45%;
+  height: 60vh;
+  width: 100%;
 
-  align-items: flex-start;
+  overflow-y: scroll;
+
+  align-items: start;
   justify-content: center;
   flex-wrap: wrap;
 }
@@ -237,11 +258,14 @@ body {
 #b-queue {
   display: flex;
   margin: 0;
-  width: 45%;
+  height: 60vh;
+  width: 100%;
   
-  border-right: 1vh solid #1282A2;
+  /* border-right: 1vh solid #1282A2; */
   
-  align-items: flex-start;
+  overflow-y: scroll;
+
+  align-items: start;
   justify-content: center;
   flex-wrap: wrap;
 }
