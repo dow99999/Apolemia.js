@@ -9,6 +9,6 @@ s.connect_monitoring();
 
 (async () => {
   while(true) {
-    s.send("monitor", await mu.info());
+    s.send("monitor", await mu.osInfo());
   }
 })()

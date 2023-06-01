@@ -4,7 +4,7 @@ class SlaveData {
     this.ws_monitor = ws_monitor;
     this.stats = null;
 
-    this.tokens = 2;
+    this.tokens = -1;
   }
 }
 

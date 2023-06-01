@@ -128,8 +128,8 @@ class Master {
     for(const [id, slave] of Object.entries(this.__slaves)) {
       if(slave.stats == null) continue;
 
-      if(min[0] == null || (slave.tokens > 0 && min[1] < slave.stats.cpu)) {
-        min = [id, slave.stats.cpu]
+      if(min[0] == null || (slave.tokens > 0 && min[1] < slave.stats.cpu.usage)) {
+        min = [id, slave.stats.cpu.usage]
       }
     }
 
@@ -213,6 +213,9 @@ class Master {
         break;
       case "monitor":
         this.__slaves[ws_id].stats = dataObject.data;
+        if(this.__slaves[ws_id].tokens == -1) {
+          this.__slaves[ws_id].tokens = dataObject.data.cpu.threads.length;
+        }
         // console.log(this.__slaves[ws_id].stats)
         break;
       case "job":

@@ -49,24 +49,42 @@ class Monitor {
     this.APP.post("/slaves", (req, res) => {
       let slave_stats = {};
       
-      for(const [key, value] of Object.entries(this.__master.__slaves)){
-        slave_stats[key] = value.stats;
-        slave_stats[key]["tokens"] = value.tokens;
+      for(const [key, value] of Object.entries(this.__master.__slaves)) {
+        if(value != null && value.stats != null && value.tokens != null) {
+          slave_stats[key] = value.stats;
+          slave_stats[key]["tokens"] = value.tokens;
+        }
       }
 
       res.send(slave_stats);
     })
 
     this.APP.post("/jobs", (req, res) => {
+      let queue = this.__master.__requests.queue.map((v) => {
+        return {
+          requester: v.requester_id,
+          shard_id: v.slave_id,
+          id: v.request.id,
+          executor: v.request.executor
+        }
+      });
+      let started = this.__master.__requests.started.map((v) => {
+        return {
+          requester: v.requester_id,
+          shard: v.slave_id,
+          id: v.request.id,
+          executor: v.request.executor
+        }
+      });
 
-    })
-    
-    this.APP.post("/requesters", (req, res) => {
-
+      res.send({
+        "queue": queue,
+        "started": started
+      });
     })
 
     this.APP.listen(this.PORT, () => {
-      lu.log(MODULE_NAME, "Started Monitoring. Access on http://localhost:" + this.PORT);
+      lu.log(MODULE_NAME, "Started Monitoring. Access on http://127.0.0.1:" + this.PORT);
     })
   }
 }

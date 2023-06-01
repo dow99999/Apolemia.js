@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Monitorization</title>
+    <title>Apolemia.js | Monitorization</title>
     <link rel="stylesheet" href="./css">
     <script src="./js"></script>
 
@@ -11,16 +11,18 @@
   </head>
   <body>
     <div id="menu">
-      <a href="./"><img id="brand" src="./res/?file=apolemia_brand.png"></a>
-      <div id="req-btn" class="menu-opt">Requesters</div>
+      <!--<a href="./"><img id="brand" src="./res/?file=apolemia_brand.png"></a>-->
+      <a id="brand" href="./">Apolemia.js</a>
       <div id="job-btn" class="menu-opt">Jobs</div>
       <div id="sla-btn" class="menu-opt">Slaves</div>
     </div>
     <div id="data">
       <div id="cluster-stats">
-        Average CPU usage: <span id="avg-cpu"></span><br>
-        Total Cluster RAM: <span id="tot-ram"></span><br>
-        Total Cluster RAM: <span id="av-ram"></span><br>
+        <div><h3>Cluster General Stats:</h3></div>
+        <div>Connected Nodes: <span id="n-nodes"></span></div>
+        <div>Average Cluster CPU usage: <span id="avg-cpu"></span></div>
+        <div>Total Cluster RAM: <span id="tot-ram"></span></div>
+        <div>Available Cluster RAM: <span id="ava-ram"></span></div>
       </div>
     </div>
   </body>

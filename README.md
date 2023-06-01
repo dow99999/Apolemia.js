@@ -4,8 +4,8 @@
 
 ---------------------
 <br>
-Apolemia.js is a Distributed Computing OpenSource Platform designed to facilitate
-the execution of multiple instances of a program in a cluster.
+Apolemia.js is a Distributed Computing OpenSource Framework designed to facilitate
+the creation of distributed computing platforms in a cluster.
 
 <br>
 <br>

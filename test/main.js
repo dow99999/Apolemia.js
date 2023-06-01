@@ -1,5 +1,7 @@
+let os = require("os");
 let fs = require("fs");
 
+let mu = require("../lib/monitorUtils");
 
 fs.writeFileSync("test.txt", "Hola mundo distribuido")
 
@@ -12,3 +14,8 @@ for(let i = 0; i < 5; i++){
     console.log("b" + i)
   })()
 }
+
+(async () => {
+  console.log(await mu.osInfo());
+})()
+
