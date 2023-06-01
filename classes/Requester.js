@@ -29,7 +29,7 @@ class Requester {
     };
 
     this.__ws_requester.addEventListener("open", () => {
-      console.log("Successfully connected to " + this.host + ":" + this.port);
+      console.log("Successfully connected to Master@" + this.host + ":" + this.port);
       this.connected = true;
     })
 
@@ -89,17 +89,19 @@ class Requester {
         lu.log(MODULE_NAME, data, ["info"]);
         break;
       case "job":
-        lu.log(MODULE_NAME, "Received Results from Job");
+        lu.log(MODULE_NAME, "Received Results from Job " + data.id);
         
-        fs.mkdirSync("./results/" + data.id);
-        fs.writeFileSync("./results/" + data.id + "/workspace.zip", Buffer.from(data.job.workspace, "base64"));
         
-        let zip = new AdmZip("./results/" + data.id + "/workspace.zip");
-        zip.extractAllTo("./results/" + data.id + "/", true);
-        fs.rmSync("./results/" + data.id + "/workspace.zip");
-
-        fs.writeFileSync("./results/" + data.id + "/stdout.txt", data.job.stdout);
-
+        fs.mkdirSync("./apolemia_responses/" + data.id, { recursive: true });
+        fs.writeFileSync("./apolemia_responses/" + data.id + "/workspace.zip", Buffer.from(data.job.workspace, "base64"));
+        
+        let zip = new AdmZip("./apolemia_responses/" + data.id + "/workspace.zip");
+        zip.extractAllTo("./apolemia_responses/" + data.id + "/", true);
+        fs.rmSync("./apolemia_responses/" + data.id + "/workspace.zip");
+        
+        fs.writeFileSync("./apolemia_responses/" + data.id + "/stdout.txt", data.job.stdout);
+        lu.log(MODULE_NAME, "Saved Results on " + "./apolemia_responses/" + data.id);
+        
         process.exit()
     }
   }

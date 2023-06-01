@@ -25,14 +25,14 @@ async function getJobs() {
 
 function getJobHtmlItem(job) {
   let card = document.createElement("div");
-
+  console.log(job);
   card.innerHTML = `
   <div>
     <div id=${job.id}-id>Job ID: <span>${job.id}</span></div>
   </div>
   <div>
     <div id=${job.id}-req>Requester ID: <span>${job.requester}</span></div>
-    <div id=${job.id}-sha>Assigned Slave: <span>${job.shard_id}</span></div>
+    <div id=${job.id}-sha>Assigned Slave: <span>${job.shard}</span></div>
     <div id=${job.id}-exec>Executor: <span>${job.executor}</span></div>
   </div>
   `;
@@ -161,36 +161,41 @@ async function loadJobsData() {
   
   for(let i = 0; i < jobs.queue.length; i++) {
     if(g_qjobs[jobs.queue[i].id] == null) {
-
-      jobs.queue[i].card = getJobHtmlItem(jobs.queue[i]);
-      if(showing == "jobs") {
-        document.getElementById("b-queue").appendChild(jobs.queue[i].card);
-      }
       g_qjobs[jobs.queue[i].id] = jobs.queue[i];
+      g_qjobs[jobs.queue[i].id].card = getJobHtmlItem(g_qjobs[jobs.queue[i].id]);
+      if(showing == "jobs") {
+        document.getElementById("b-queue").appendChild(g_qjobs[jobs.queue[i].id].card);
+      }
     }
-    jobs.queue[i].update = timestamp;
+    g_qjobs[jobs.queue[i].id].update = timestamp;
   }
 
   for(let i = 0; i < jobs.started.length; i++) {
     if(g_sjobs[jobs.started[i].id] == null) {
 
-      jobs.started[i].card = getJobHtmlItem(jobs.started[i]);
-      if(showing == "jobs") {
-        document.getElementById("b-started").appendChild(jobs.started[i].card);
-      }
       g_sjobs[jobs.started[i].id] = jobs.started[i];
+      g_sjobs[jobs.started[i].id].card = getJobHtmlItem(g_sjobs[jobs.started[i].id]);
+      if(showing == "jobs") {
+        document.getElementById("b-started").appendChild(g_sjobs[jobs.started[i].id].card);
+      }
     }
-    jobs.started[i].update = timestamp;
+    g_sjobs[jobs.started[i].id].update = timestamp;
   }
 
   for(const [key, value] of Object.entries(g_qjobs)) {
     if(value.update != timestamp) {
+      if(showing == "jobs") {
+        document.getElementById("b-queue").removeChild(value.card);
+      }
       delete g_qjobs[key];
     }
   }
 
   for(const [key, value] of Object.entries(g_sjobs)) {
     if(value.update != timestamp) {
+      if(showing == "jobs") {
+        document.getElementById("b-started").removeChild(value.card);
+      }
       delete g_sjobs[key];
     }
   }

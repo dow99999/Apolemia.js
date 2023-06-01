@@ -6,6 +6,9 @@ class JobObject {
     this.executor = executor;
     this.command = command;
     
+    this.start_epoch = +(new Date())
+    this.end_epoch = +(new Date())
+
     this.started = false;
     this.ended = false;
 

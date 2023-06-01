@@ -1,3 +1,4 @@
 npm i express
 npm i adm-zip
+npm i crypto
 npm i ws

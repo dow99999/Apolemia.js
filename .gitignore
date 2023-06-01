@@ -7,3 +7,5 @@ package-lock.json
 slave_dock/*/
 workspaces/*/
 results/*/
+
+*/apolemia_responses/

@@ -34,7 +34,7 @@ class Slave {
     };
 
     this.__ws_monitor.addEventListener("open", () => {
-      lu.log(MODULE_NAME, "Successfully connected to " + this.host + ":" + this.port);
+      lu.log(MODULE_NAME, "Successfully connected to Master@" + this.host + ":" + this.port);
       this.connected = true;
     })
 

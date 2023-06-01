@@ -63,7 +63,7 @@ class Monitor {
       let queue = this.__master.__requests.queue.map((v) => {
         return {
           requester: v.requester_id,
-          shard_id: v.slave_id,
+          shard: v.slave_id,
           id: v.request.id,
           executor: v.request.executor
         }

@@ -110,8 +110,8 @@ body {
   margin: 2vh 2vw;
 
   min-width: fit-content;
-  width: 15vw;
-  height: 15vw;
+  width: 30vh;
+  height: 30vh;
 
   color: #FAFAFF;
 
@@ -223,11 +223,22 @@ body {
   color: #1282A2;
 }
 
-.b-started {
-  width: 50%;
+#b-started {
+  display: flex;
+
+  margin: 0;
+  width: 45%;
+
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
-.b-queue {
-  width: 50%;
+#b-queue {
+  display: flex;
+  margin: 0;
+  width: 45%;
   border-right: 1vh solid #1282A2;
+  
+  justify-content: center;
+  flex-wrap: wrap;
 }
