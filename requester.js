@@ -12,4 +12,4 @@ if(process.argv.length < 4) {
 
 new Requester(cfg.master_ip, cfg.master_request_port)
   .connect()
-  .startJob(process.cwd(), process.argv[2], process.argv[3], process.argv.slice(5));
+  .startJob(process.cwd(), process.argv[2], process.argv[3], process.argv.slice(4));
