@@ -2,6 +2,8 @@
   <img src="./classes/webApp/res/apolemia_brand.png"><br>
 </div>
 
+###### Photo by Jose M. Juárez
+
 ---------------------
 
 <br>
@@ -40,7 +42,7 @@ node slave.js
 ```
 
 ### **Generate Request**
-It's easy, just put `apolemia.sh` or `apolemia.bat` depending on your OS before the command that executes your project, just as you would normally execute it.
+It's easy, just put `apolemia.sh` or `apolemia.bat`, depending on your OS, before the command that executes your project, just as you would normally execute it.
 ```bash
 # Windows
 apolemia.bat <command + args>
@@ -50,7 +52,7 @@ apolemia.sh <command + args>
 
 # For example:
 apolemia.sh python3 main.py 27 ./data/city.csv
-apolemia.sh node server.js
+apolemia.sh node tester.js
 ```
 
 ## Monitorization
